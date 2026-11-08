@@ -33,7 +33,53 @@ offers = Table(
 
 def init_db():
     metadata.create_all(engine)  # crée les tables si absentes
-
+    
+    # Auto-remplissage si la base est vide pour éviter la page blanche sur Render
+    with engine.begin() as conn:
+        count = conn.execute(select(func.count()).select_from(offers)).scalar_one()
+        if count == 0:
+            from datetime import date
+            initial_data = [
+                {
+                    "title": "Développeur Backend Python / FastAPI",
+                    "company": "Marrakech Digital Lab",
+                    "city": "Marrakech",
+                    "kind": "Emploi",
+                    "contract": "CDI",
+                    "domain": "IT / Développement",
+                    "level": "Bac+5",
+                    "salary_mad": 12000,
+                    "remote": True,
+                    "skills": "Python, FastAPI, SQL, Git",
+                    "description": "Poste de développeur backend pour concevoir des API robustes.",
+                    "source": "Interne",
+                    "url": "https://example.com",
+                    "posted_date": date.today(),
+                    "deadline": date.today(),
+                    "collected_date": date.today(),
+                    "is_demo": False
+                },
+                {
+                    "title": "Stage Data Analyst / Python",
+                    "company": "Marrakech Data Corp",
+                    "city": "Marrakech",
+                    "kind": "Stage",
+                    "contract": "Stage PFE",
+                    "domain": "Data Engineering",
+                    "level": "Bac+4",
+                    "salary_mad": 3000,
+                    "remote": False,
+                    "skills": "Python, Pandas, SQL, Streamlit",
+                    "description": "Stage de fin d'études axé sur le traitement et la visualisation de données.",
+                    "source": "Interne",
+                    "url": "https://example.com",
+                    "posted_date": date.today(),
+                    "deadline": date.today(),
+                    "collected_date": date.today(),
+                    "is_demo": False
+                }
+            ]
+            conn.execute(insert(offers), initial_data)
 
 def count_offers() -> int:
     with engine.connect() as conn:
