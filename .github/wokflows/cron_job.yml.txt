@@ -1,0 +1,37 @@
+name: Collecte Quotidienne des Offres
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # S'exécute tous les jours à 08:00 UTC
+  workflow_dispatch: # Permet de lancer la tâche manuellement depuis GitHub à tout moment
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code source
+        uses: actions/checkout@v4
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Installer les dépendances
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lancer le script de collecte
+        run: |
+          python collect_and_save.py
+
+      - name: Sauvegarder les nouvelles données dans le dépôt Git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add opportunitemaroc.db
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Mise à jour automatique des offres [skip ci]" && git push)
