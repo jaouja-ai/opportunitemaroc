@@ -10,8 +10,10 @@ from backend.data_processing import MISSING, missing_report
 from backend.database import read_offers_df
 from backend.services import apply_filters, compute_stats, get_clean_df
 
-import theme
-
+try:
+    from dashboard import theme   # lancé via l'API (uvicorn backend.main:app)
+except ImportError:
+    import theme                  # lancé seul (python dashboard/app.py)
 MISSING_LABELS = {"domain": "Domaine", "city": "Ville", "level": "Niveau", "salary_mad": "Rémunération",
                   "deadline": "Date limite", "posted_date": "Date de publication", "skills": "Compétences"}
 
