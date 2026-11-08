@@ -15,11 +15,9 @@ PAGES = ["Offres", "Générateur de CV", "Statistiques & Insights"]
 NA = "Non renseigné"
 esc = lambda v: html.escape(str(v if v is not None else ""))  # noqa: E731
 
-
 def hero(title, subtitle, demo=False):
-    badge = "<div class='demo'>Contient des données de démonstration (fictives)</div>" if demo else ""
+    badge = "<div class='demo'>Contient des données de démonstration (extraites)</div>" if demo else ""
     st.markdown(f"<div class='hero'><h1>{esc(title)}</h1><p>{esc(subtitle)}</p>{badge}</div>", unsafe_allow_html=True)
-
 
 def select_offer(offer_id):  # bouton « Adapter mon CV » : mémorise l'offre et ouvre le générateur
     st.session_state.selected_offer = offer_id
