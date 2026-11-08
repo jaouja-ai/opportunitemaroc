@@ -126,4 +126,5 @@ def create_dash_app():
 if __name__ == "__main__":
     app = create_dash_app()
     port = int(os.environ.get("PORT", 8050))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    # On ajoute use_reloader=False pour éviter que Flask ne lance le serveur en double
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
