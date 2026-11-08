@@ -10,7 +10,7 @@ from backend.data_processing import MISSING, missing_report
 from backend.database import read_offers_df
 from backend.services import apply_filters, compute_stats, get_clean_df
 
-from . import theme
+import theme
 
 MISSING_LABELS = {"domain": "Domaine", "city": "Ville", "level": "Niveau", "salary_mad": "Rémunération",
                   "deadline": "Date limite", "posted_date": "Date de publication", "skills": "Compétences"}
