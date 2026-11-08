@@ -1,4 +1,8 @@
 """Dashboard Dash : graphiques interactifs, filtres, insights. Valeurs manquantes en gris."""
+import sys
+import os
+# Ajoute le dossier racine du projet au PATH de Python
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import plotly.graph_objects as go
 from dash import Dash, Input, Output, dcc, html
 
