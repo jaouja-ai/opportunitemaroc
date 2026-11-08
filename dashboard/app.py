@@ -122,9 +122,10 @@ def create_dash_app():
 
     return app
 
-# --- LANCEMENT DU SERVEUR POUR RENDER ET LOCAL ---
+# --- LANCEMENT / EXPORT POUR RENDER (Gunicorn / Python) ---
+app = create_dash_app()
+server = app.server  # Indispensable pour que Render/Gunicorn trouve l'application
+
 if __name__ == "__main__":
-    app = create_dash_app()
     port = int(os.environ.get("PORT", 8050))
-    # On ajoute use_reloader=False pour éviter que Flask ne lance le serveur en double
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
