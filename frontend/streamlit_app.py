@@ -1,6 +1,7 @@
 """Interface Streamlit : Offres (filtres intégrés), Générateur de CV, Statistiques & Insights."""
 import html
 import math
+import time
 
 import pandas as pd
 import streamlit as st
@@ -8,10 +9,15 @@ import streamlit as st
 import api_client as api
 from styles import CSS
 
+try:
+    from chatbot_ui import render_chatbot  # fichier voisin, comme api_client
+except ImportError:
+    from frontend.chatbot_ui import render_chatbot
+
 st.set_page_config(page_title="OPPORTUNITEMAROC", page_icon="🎓", layout="wide")
 st.markdown(CSS, unsafe_allow_html=True)
 
-PAGES = ["Offres", "Générateur de CV", "Statistiques & Insights"]
+PAGES = ["Offres", "Générateur de CV", "Statistiques & Insights", "Assistant IA"]
 NA = "Non renseigné"
 esc = lambda v: html.escape(str(v if v is not None else ""))  # noqa: E731
 
@@ -144,12 +150,29 @@ def page_stats():
     st.iframe(f"{api.PUBLIC_API_URL}/dashboard/", height=1650)  # Dash servi par l'API (URL publique)
 
 
+def page_chat():
+    render_chatbot()
+
+
+def wait_for_api(tries=6, delay=10):
+    """L'API gratuite (Render) peut dormir : on attend son réveil au lieu d'afficher une erreur."""
+    for _ in range(tries):
+        if api.api_ok():
+            return True
+        time.sleep(delay)
+    return False
+
+
 # --- navigation ---
 if "nav" not in st.session_state:
     st.session_state.nav = PAGES[0]
 st.sidebar.markdown("<div class='brand'>OPPORTUNITE<b>MAROC</b></div>", unsafe_allow_html=True)
 page = st.sidebar.radio("Navigation", PAGES, key="nav", label_visibility="collapsed")
 if not api.api_ok():
-    st.error("L'API ne répond pas. Lancez l'application avec `python run.py` (voir README).")
-    st.stop()
-{PAGES[0]: page_offers, PAGES[1]: page_cv, PAGES[2]: page_stats}[page]()
+    with st.spinner("Réveil du serveur en cours (jusqu'à 1 minute)…"):
+        ready = wait_for_api()
+    if not ready:
+        st.error("L'API ne répond pas pour le moment. Recharge la page dans un instant "
+                 "(en local : lancez l'application avec `python run.py`).")
+        st.stop()
+{PAGES[0]: page_offers, PAGES[1]: page_cv, PAGES[2]: page_stats, PAGES[3]: page_chat}[page]()

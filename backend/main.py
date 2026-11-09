@@ -23,7 +23,8 @@ async def lifespan(_):
 
 
 app = FastAPI(title="OPPORTUNITEMAROC API", version="1.0", lifespan=lifespan)
-
+from backend.chatbot import router as chatbot_router
+app.include_router(chatbot_router)
 
 class OfferFilters:
     """Paramètres de requête communs (listes répétables : ?city=Rabat&city=Fès)."""
@@ -125,3 +126,5 @@ def cv_pdf(cv: CVDoc):
 
 
 app.mount("/dashboard", WSGIMiddleware(create_dash_app().server))  # Dash servi par la même API
+from backend.chatbot import router as chatbot_router
+app.include_router(chatbot_router)
