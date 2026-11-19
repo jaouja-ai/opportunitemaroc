@@ -48,7 +48,7 @@ def offer_card(o):
             st.write(o.get("description") or "Description non renseignée.")
             st.markdown("**Compétences :** " + (esc(o.get("skills")) or "_non renseignées_"))
             st.markdown(f"**Date limite :** {o.get('deadline') or '_non renseignée_'} · **Source :** {esc(o['source'])}")
-            st.markdown(f"[Voir l'offre]({esc(o.get('url'))})")
+            st.link_button("Voir l'offre", o["url"])
 
 
 def page_offers():

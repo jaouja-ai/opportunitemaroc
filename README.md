@@ -43,7 +43,7 @@ L'interface ne touche jamais la base de données : tout passe par l'API.
 
 | Élément | Rôle |
 |---|---|
-| `backend/` | API FastAPI, base de données, nettoyage des données, IA, PDF, chatbot, données de démonstration |
+| `backend/` | API FastAPI, base de données, nettoyage des données, IA, PDF et chatbot |
 | `dashboard/` | Graphiques interactifs Dash (servis par l'API sur `/dashboard`) |
 | `frontend/` | Interface Streamlit (`streamlit_app.py`, `chatbot_ui.py`, client API, styles) |
 | `.streamlit/config.toml` | Thème bleu/blanc |
@@ -109,7 +109,7 @@ LLM_MODEL=llama-3.1-8b-instant
 - API et documentation interactive : http://localhost:8000/docs
 - `Ctrl+C` arrête tout.
 
-Au premier lancement, la base SQLite (`opportunitemaroc.db`) est créée et remplie avec 240 offres de démonstration.
+Au premier lancement, la base SQLite (`opportunitemaroc.db`) est créée vide. Le démarrage ne collecte ni n'importe aucune offre automatiquement. Les anciennes offres de démonstration marquées `is_demo=True` sont supprimées au démarrage.
 
 ## Utilisation
 
@@ -133,16 +133,16 @@ Au premier lancement, la base SQLite (`opportunitemaroc.db`) est créée et remp
 **Scripts utiles :**
 
 ```powershell
-.\venv\Scripts\python collect_and_save.py     # nettoie et insère de vraies offres (is_demo = False)
+.\venv\Scripts\python collect_and_save.py --input real_offers.csv # nettoie et insère des offres vérifiées
 .\venv\Scripts\python exporter_donnees.py     # génère data.csv (brut) et traiter.csv (nettoyé)
-.\venv\Scripts\python -m backend.seed --reset # régénère uniquement la démo (240 offres fictives)
 ```
 
 ### Brancher de vraies offres
 
 1. Collecter légalement (API officielles, flux autorisés, saisie manuelle). Pas de scraping des sites qui l'interdisent (ex. LinkedIn).
-2. Insérer avec `backend.database.insert_offers([...])` en mettant `is_demo=False` (même format que `backend/seed.py`, voir `collect_and_save.py`).
-3. `--reset` ne touche jamais aux vraies offres. Le badge « démo » reste affiché tant qu'au moins une offre fictive est en base.
+2. Enregistrer les offres dans `real_offers.csv`, avec les colonnes attendues par la base (`title`, `company`, `city`, `kind`, `contract`, `domain`, `level`, `salary_mad`, `remote`, `skills`, `description`, `source`, `url`, `posted_date`, `deadline`, `collected_date`, `is_demo`). Chaque ligne doit avoir `is_demo=False` et une URL HTTP(S) absolue vers l'offre. Les domaines de démonstration comme `example.com` sont rejetés.
+3. Lancer `python collect_and_save.py --input real_offers.csv`. Les offres sans URL valide ou marquées comme démo sont refusées. La vérification contrôle la forme et les domaines factices connus, mais ne peut pas garantir qu'un site distant restera actif ou accessible.
+4. Les API, statistiques, graphiques et cartes du chatbot n'affichent que les offres `is_demo=False` ayant une URL valide. Un badge de démonstration n'est donc jamais affiché pour une base vide ni pour les offres visibles.
 
 ## Intelligence artificielle
 
@@ -168,7 +168,7 @@ PUBLIC_API_URL = "https://votre-api.onrender.com"
 
 **À savoir sur les offres gratuites :**
 - Le service s'endort après inactivité (premier chargement de 30 à 60 s) ; l'interface attend alors son réveil.
-- Le disque est éphémère : SQLite repart de la démo à chaque redémarrage. Pour garder les données, utiliser PostgreSQL via `DATABASE_URL` (ajouter `psycopg2-binary` aux dépendances).
+- Le disque est éphémère : les offres SQLite peuvent être perdues au redémarrage. Pour garder les données, utiliser PostgreSQL via `DATABASE_URL` (ajouter `psycopg2-binary` aux dépendances).
 
 ## Dépannage
 

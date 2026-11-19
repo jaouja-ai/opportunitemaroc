@@ -1,29 +1,19 @@
 import pandas as pd
-from backend.database import read_offers_df
-from backend.data_processing import clean_offers
 
-def main():
-    print("🔄 Extraction des données de l'application...")
+def charger_offres():
+    chemin = "data_propre.csv"
 
-    # 1. Récupération des données brutes depuis la base de données de l'application
-    df_brutes = read_offers_df()
-    
-    if df_brutes.empty:
-        print("⚠️ Aucune donnée trouvée dans la base de données.")
-        return
+    df = pd.read_csv(
+        chemin,
+        encoding="utf-8-sig"
+    )
 
-    print(f"-> {len(df_brutes)} offres récupérées depuis l'application.")
+    df.columns = df.columns.str.strip().str.lower()
 
-    # 2. Sauvegarde du fichier BRUT : data.csv
-    df_brutes.to_csv("data.csv", index=False, encoding="utf-8-sig")
-    print("✅ Fichier 'data.csv' (donnees brutes) généré avec succès !")
+    df = df.drop_duplicates()
 
-    # 3. Application du nettoyage via votre module data_processing.py
-    df_traitees = clean_offers(df_brutes)
+    return df
+df = charger_offres()
 
-    # 4. Sauvegarde du fichier TRAITÉ : traiter.csv
-    df_traitees.to_csv("traiter.csv", index=False, encoding="utf-8-sig")
-    print(" Fichier 'traiter.csv' (donnees nettoyees) généré avec succès !")
-
-if __name__ == "__main__":
-    main()
+print(df.head())
+print("Nombre d'offres :", len(df))

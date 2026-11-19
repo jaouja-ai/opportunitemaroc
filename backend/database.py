@@ -1,7 +1,10 @@
 """Accès base de données : SQLite par défaut, PostgreSQL en changeant DATABASE_URL."""
+from urllib.parse import urlsplit
+
+import numpy as np
 import pandas as pd
 from sqlalchemy import (Boolean, Column, Date, Integer, MetaData, String, Table, Text,
-                        create_engine, delete, func, insert, select)
+                        create_engine, delete, insert, select)
 
 from .config import DATABASE_URL
 
@@ -27,43 +30,53 @@ offers = Table(
     Column("posted_date", Date),
     Column("deadline", Date),
     Column("collected_date", Date),
-    Column("is_demo", Boolean, default=True),
+    Column("is_demo", Boolean, nullable=False, default=False),
 )
 
 
-import os
-import pandas as pd
+def is_valid_offer_url(value) -> bool:
+    """Accept absolute HTTP(S) offer URLs, but reject known placeholder domains."""
+    if not isinstance(value, str):
+        return False
+    try:
+        parsed = urlsplit(value.strip())
+        host = parsed.hostname
+        _ = parsed.port
+    except ValueError:
+        return False
+    if parsed.scheme.lower() not in {"http", "https"} or not host:
+        return False
+    host = host.lower().rstrip(".")
+    if any(char.isspace() for char in host):
+        return False
+    if host in {"example.com", "example.org", "example.net"} or any(
+            host.endswith(f".{domain}") for domain in ("example.com", "example.org", "example.net")):
+        return False
+    return not (host.endswith(".invalid") or host.endswith(".test"))
+
 
 def init_db():
-    metadata.create_all(engine)  # Crée la table si elle n'existe pas
+    metadata.create_all(engine)
     with engine.begin() as conn:
-        count = conn.execute(select(func.count()).select_from(offers)).scalar_one()
-        
-        # Si la table est vide, on cherche le fichier CSV pour l'importer automatiquement
-        if count == 0:
-            # On cherche s'il y a un fichier traiter.csv ou data.csv à la racine
-            csv_path = "traiter.csv"
-            if not os.path.exists(csv_path):
-                csv_path = "data.csv"
-                
-            if os.path.exists(csv_path):
-                try:
-                    df = pd.read_csv(csv_path)
-                    # Nettoyage rapide des colonnes si besoin et insertion
-                    # On garde uniquement les colonnes qui existent dans notre table
-                    df.to_sql("offers", con=engine, if_exists="append", index=False)
-                    print(f"Données importées avec succès depuis {csv_path}")
-                except Exception as e:
-                    print(f"Erreur lors de l'import du CSV : {e}")
-
-def count_offers() -> int:
-    with engine.connect() as conn:
-        return conn.execute(select(func.count()).select_from(offers)).scalar_one()
+        rows = conn.execute(select(offers.c.id, offers.c.url, offers.c.is_demo)).all()
+        invalid_ids = [
+            row.id for row in rows
+            if row.is_demo is not False or not is_valid_offer_url(row.url)
+        ]
+        if invalid_ids:
+            conn.execute(delete(offers).where(offers.c.id.in_(invalid_ids)))
 
 
 def insert_offers(rows: list[dict]):
+    for row in rows:
+        is_demo = row.get("is_demo")
+        if not isinstance(is_demo, (bool, np.bool_)) or bool(is_demo):
+            raise ValueError("Only offers explicitly marked is_demo=False can be saved.")
+        if not is_valid_offer_url(row.get("url")):
+            raise ValueError(f"Offer has no valid non-placeholder HTTP(S) URL: {row.get('title', '')}")
     with engine.begin() as conn:
-        conn.execute(insert(offers), rows)
+        if rows:
+            conn.execute(insert(offers), rows)
 
 
 def reset_offers():
@@ -73,6 +86,9 @@ def reset_offers():
 
 
 def read_offers_df() -> pd.DataFrame:
-    init_db()  # idempotent : garantit que la table existe, même avant le premier démarrage de l'API
+    init_db()
     with engine.connect() as conn:
-        return pd.read_sql(select(offers), conn)
+        df = pd.read_sql(select(offers).where(offers.c.is_demo.is_(False)), conn)
+    if df.empty:
+        return df
+    return df[df["url"].map(is_valid_offer_url)].reset_index(drop=True)

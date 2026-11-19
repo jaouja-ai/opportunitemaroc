@@ -10,15 +10,14 @@ from dashboard.app import create_dash_app
 
 from .ai_cv import adapt_cv
 from .data_processing import MISSING, missing_report
-from .database import read_offers_df
+from .database import init_db, read_offers_df
 from .pdf_cv import build_pdf
-from .seed import seed_if_empty
 from .services import apply_filters, compute_stats, get_clean_df, to_records
 
 
 @asynccontextmanager
 async def lifespan(_):
-    seed_if_empty()  # base vide -> données de démonstration
+    init_db()
     yield
 
 

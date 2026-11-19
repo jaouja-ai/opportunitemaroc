@@ -52,7 +52,7 @@ def _offer_card(o):
         badges += '<span class="badge">Rémunération non renseignée</span>'
     link = ""
     url = o.get("url") or ""
-    if url.startswith("http"):
+    if url.startswith(("http://", "https://")):
         link = f'<br><a href="{html.escape(url)}" target="_blank" rel="noopener">Voir l\'offre →</a>'
     return (f'<div class="offer-card"><div class="t">{esc(o.get("title", ""))}</div>'
             f'<div class="m">{meta}</div>{badges}{link}</div>')

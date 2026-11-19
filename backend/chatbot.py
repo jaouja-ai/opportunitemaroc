@@ -27,8 +27,8 @@ SYSTEM = (
     "Tu peux aussi donner des conseils sur le CV, la lettre de motivation et les entretiens. "
     "Si la question n'a aucun rapport avec les stages, l'emploi ou la carrière, ramène "
     "poliment la conversation vers ces sujets. "
-    "Les offres de la plateforme sont en grande partie des données de démonstration : "
-    "mentionne-le une fois si on te demande de postuler."
+    "Ne recommande que les offres réelles fournies ci-dessous et n'invente jamais "
+    "d'offre ni de lien source."
 )
 
 COLS = ["title", "company", "city", "kind", "contract", "domain", "level", "salary_mad", "skills"]
