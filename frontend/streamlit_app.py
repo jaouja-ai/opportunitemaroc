@@ -8,13 +8,13 @@ import streamlit as st
 
 import api_client as api
 from styles import CSS
-
+st.sidebar.caption(api.api_diag())
 try:
     from chatbot_ui import render_chatbot  # fichier voisin, comme api_client
 except ImportError:
     from frontend.chatbot_ui import render_chatbot
 
-st.set_page_config(page_title="OPPORTUNITEMAROC", page_icon="🎓", layout="wide")
+st.set_page_config(page_title="OPPORTUNITEMAROC", page_icon="", layout="wide")
 st.markdown(CSS, unsafe_allow_html=True)
 
 PAGES = ["Offres", "Générateur de CV", "Statistiques & Insights", "Assistant IA"]
@@ -168,6 +168,19 @@ if "nav" not in st.session_state:
     st.session_state.nav = PAGES[0]
 st.sidebar.markdown("<div class='brand'>OPPORTUNITE<b>MAROC</b></div>", unsafe_allow_html=True)
 page = st.sidebar.radio("Navigation", PAGES, key="nav", label_visibility="collapsed")
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+
+@st.cache_resource
+def start_backend():
+    return subprocess.Popen(
+        [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", "8000"],
+        cwd=str(ROOT_DIR),
+    )
 if not api.api_ok():
     with st.spinner("Réveil du serveur en cours (jusqu'à 1 minute)…"):
         ready = wait_for_api()
@@ -176,3 +189,4 @@ if not api.api_ok():
                  "(en local : lancez l'application avec `python run.py`).")
         st.stop()
 {PAGES[0]: page_offers, PAGES[1]: page_cv, PAGES[2]: page_stats, PAGES[3]: page_chat}[page]()
+start_backend()

@@ -7,6 +7,15 @@ pertinentes, que l'interface affiche sous forme de cartes.
 """
 import os
 
+try:
+    import streamlit as st
+    for _k, _v in st.secrets.items():
+        if isinstance(_v, str) and _k not in os.environ:
+            os.environ[_k] = _v
+except Exception:
+    pass
+
+
 import pandas as pd
 from fastapi import APIRouter, HTTPException
 from openai import OpenAI, OpenAIError

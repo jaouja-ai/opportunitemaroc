@@ -59,7 +59,7 @@ def _offer_card(o):
 
 
 def _show(msg):
-    with st.chat_message(msg["role"], avatar="🧑‍🎓" if msg["role"] == "user" else "🤖"):
+    with st.chat_message(msg["role"], avatar="" if msg["role"] == "user" else ""):
         st.markdown(msg["content"])
         for o in msg.get("offers", []):
             st.markdown(_offer_card(o), unsafe_allow_html=True)
@@ -74,16 +74,16 @@ def _ask(history):
                 d = r.json()
                 return d.get("answer", ""), d.get("offers", [])
             detail = r.json().get("detail", r.text) if r.headers.get("content-type", "").startswith("application/json") else r.text
-            return f"⚠️ Erreur {r.status_code} : {detail}", []
+            return f" Erreur {r.status_code} : {detail}", []
         except requests.RequestException:
             if attempt == 0:
                 time.sleep(5)
-    return "⚠️ L'assistant ne répond pas pour le moment. Réessaie dans quelques secondes.", []
+    return " L'assistant ne répond pas pour le moment. Réessaie dans quelques secondes.", []
 
 
 def render_chatbot():
     st.markdown(CSS, unsafe_allow_html=True)
-    st.markdown('<div class="chat-hero"><h2>🤖 Assistant IA</h2>'
+    st.markdown('<div class="chat-hero"><h2> Assistant IA</h2>'
                 '<p>Trouve des offres, compare-les et prépare ta candidature en discutant.</p></div>',
                 unsafe_allow_html=True)
 
@@ -96,7 +96,7 @@ def render_chatbot():
 
     if not st.session_state.chat and not prompt:
         _show({"role": "assistant", "content":
-               "Bonjour ! 👋 Je peux t'aider à **trouver une offre**, comprendre le marché "
+               "Bonjour !  Je peux t'aider à **trouver une offre**, comprendre le marché "
                "ou **améliorer ton CV**. Choisis une idée ou écris ta question :"})
         cols = st.columns(2)
         for i, s in enumerate(SUGGESTIONS):
@@ -110,7 +110,7 @@ def render_chatbot():
     if prompt:
         st.session_state.chat.append({"role": "user", "content": prompt})
         _show(st.session_state.chat[-1])
-        with st.chat_message("assistant", avatar="🤖"):
+        with st.chat_message("assistant", avatar=""):
             with st.spinner("Je cherche dans les offres…"):
                 answer, offers = _ask(st.session_state.chat)
         reply = {"role": "assistant", "content": answer, "offers": offers}
@@ -118,6 +118,6 @@ def render_chatbot():
         _show(reply)
 
     if st.session_state.chat:
-        if st.button("🗑️ Nouvelle conversation"):
+        if st.button(" Nouvelle conversation"):
             st.session_state.chat = []
             st.rerun()
